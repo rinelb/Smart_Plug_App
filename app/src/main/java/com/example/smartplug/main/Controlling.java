@@ -1,5 +1,6 @@
 package com.example.smartplug.main;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -8,6 +9,8 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,8 +24,53 @@ import com.example.smartplug.R;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.Set;
 import java.util.UUID;
+
+
+
+
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.DashPathEffect;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Bundle;
+import androidx.core.content.ContextCompat;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.WindowManager;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
+
+import com.github.mikephil.charting.animation.Easing;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.Legend.LegendForm;
+import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.LimitLine.LimitLabelPosition;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IFillFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.dataprovider.LineDataProvider;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.utils.Utils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Controlling extends Activity {
     private static final String TAG = "BlueTest5-Controlling";
@@ -38,12 +86,17 @@ public class Controlling extends Activity {
     private Button mBtnDisconnect;
     private BluetoothDevice mDevice;
 
-    final static String on="92";//on
-    final static String off="79";//off
+    final static String on="on";//on
+    final static String off="off";//off
+
+    List<Entry> entries = new ArrayList<Entry>();
+    LineChart chart;
+    ArrayList<String> labels = new ArrayList<String>();
 
 
     private ProgressDialog progressDialog;
     Button btnOn,btnOff;
+    int counter = 0;
 
 
     @Override
@@ -56,6 +109,12 @@ public class Controlling extends Activity {
         btnOn=(Button)findViewById(R.id.on);
         btnOff=(Button)findViewById(R.id.of);
 
+
+        //******** chart code
+
+        // in this example, a LineChart is initialized from xml
+        chart = (LineChart) findViewById(R.id.chart);
+        LineDataSet dataSet = new LineDataSet(entries, "Label");
 
 
 
@@ -107,9 +166,20 @@ public class Controlling extends Activity {
             }});
 
 
+    }
 
+    public boolean SendCredential(String payload){
+        boolean result = false;
 
+        try {
+            mBTSocket.getOutputStream().write(payload.getBytes());
+            result = true;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
+        return result;
     }
 
     private class ReadInput implements Runnable {
@@ -132,8 +202,10 @@ public class Controlling extends Activity {
 
             try {
                 inputStream = mBTSocket.getInputStream();
+
                 while (!bStop) {
                     byte[] buffer = new byte[256];
+                    Log.i("rinel",inputStream.toString());
                     if (inputStream.available() > 0) {
                         inputStream.read(buffer);
                         int i = 0;
@@ -149,6 +221,55 @@ public class Controlling extends Activity {
                          * If checked then receive text, better design would probably be to stop thread if unchecked and free resources, but this is a quick fix
                          */
 
+                        JSONObject dataJson = null;
+                        boolean validData = false;
+                        try {
+                            dataJson = new JSONObject(strInput);
+                            validData = true;
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+
+                        }
+
+                        if (validData) {
+                            float voltage = 0;
+                            try {
+                                voltage = (float) dataJson.getDouble("current");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                validData = false;
+                            }
+                            Log.i("rinel", "volt = " + voltage);
+
+                            long timeValue = 0;
+                            try {
+                                timeValue = dataJson.getLong("time");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                validData = false;
+                            }
+                            if (validData) {
+                                Log.i("rinel", "unix time = " + timeValue);
+
+                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                                String dateString = sdf.format(timeValue * 1000);
+                                Log.i("rinel", "time = " + dateString);
+
+
+                                counter = counter + 1;
+
+                                entries.add(new Entry(counter, voltage));
+                                labels.add(dateString);
+
+                                LineDataSet dataSet = new LineDataSet(entries, "volts");
+                                LineData lineData = new LineData(dataSet);
+
+                                chart.setData(lineData);
+
+                                chart.notifyDataSetChanged();
+                                chart.invalidate();
+                            }
+                        }
 
 
                     }
@@ -178,7 +299,7 @@ public class Controlling extends Activity {
 
         @Override
         protected Void doInBackground(Void... params) {//cant inderstand these dotss
-
+            Log.i("rinel","doInBackground is running");
             if (mReadThread != null) {
                 mReadThread.stop();
                 while (mReadThread.isRunning())
@@ -252,6 +373,7 @@ public class Controlling extends Activity {
 
         }
 
+
         @Override
         protected Void doInBackground(Void... devices) {
 
@@ -281,8 +403,10 @@ public class Controlling extends Activity {
                 finish();
             } else {
                 msg("Connected to device");
+                Log.i("rinel","connected to device");
                 mIsBluetoothConnected = true;
                 mReadThread = new ReadInput(); // Kick off input reader
+                Log.i("rinel","reader has started");
             }
 
             progressDialog.dismiss();

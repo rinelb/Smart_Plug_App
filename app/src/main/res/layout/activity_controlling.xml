@@ -3,21 +3,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/on"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ON"
-        tools:layout_editor_absoluteX="161dp"
-        tools:layout_editor_absoluteY="449dp" />
+        android:orientation="vertical">
 
-    <Button
-        android:id="@+id/of"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="off"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:layout_editor_absoluteY="16dp" />
+        <Button
+            android:id="@+id/on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ON" />
+
+        <Button
+            android:id="@+id/of"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="off" />
+
+        <Button
+            android:id="@+id/credentials"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set Credentials" />
+
+        <Button
+            android:id="@+id/viewData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View Data" />
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/chart"
+            android:layout_width="421dp"
+            android:layout_height="330dp" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

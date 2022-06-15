@@ -8,6 +8,12 @@
         <entry key="..\:/work/solar/android/SmartPlug/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/work/solar/android/SmartPlug/app/src/main/res/layout/list_item.xml" value="0.1828125" />
         <entry key="..\:/work/solar/android/SmartPlug/app/src/main/res/menu/menu_game.xml" value="0.1" />
+        <entry key="app/src/main/res/layout-w1240dp/activity_login.xml" value="0.1757028112449799" />
+        <entry key="app/src/main/res/layout-w936dp/activity_login.xml" value="0.136328125" />
+        <entry key="app/src/main/res/layout/activity_controlling.xml" value="0.18177083333333333" />
+        <entry key="app/src/main/res/layout/activity_login.xml" value="0.18177083333333333" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.18177083333333333" />
+        <entry key="app/src/main/res/layout/list_item.xml" value="0.18177083333333333" />
       </map>
     </option>
   </component>
